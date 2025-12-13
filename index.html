@@ -4,25 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compact Archive</title>
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
-      
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyDi_WXlQoQsY2L7EQHZo-gHc2qxGNUjl_U",
-          authDomain: "link-archive-71bbd.firebaseapp.com",
-          projectId: "link-archive-71bbd",
-          storageBucket: "link-archive-71bbd.firebasestorage.app",
-          messagingSenderId: "762987195816",
-          appId: "1:762987195816:web:511255b8c61bc8247a419d"
-        };
-      
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-      </script>
     <style>
         /* --- CSS: 스타일 및 디자인 --- */
         :root {
@@ -259,10 +240,28 @@
         </div>
     </div>
 
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyDi_WXlQoQsY2L7EQHZo-gHc2qxGNUjl_U",
+          authDomain: "link-archive-71bbd.firebaseapp.com",
+          projectId: "link-archive-71bbd",
+          storageBucket: "link-archive-71bbd.firebasestorage.app",
+          messagingSenderId: "762987195816",
+          appId: "1:762987195816:web:511255b8c61bc8247a419d"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+      </script>
+
     <script>
-        // --- 🔐 보안 설정 (비밀번호 변경하는 곳) ---
-        const ADMIN_PASSWORD = "1234"; // 원하는 비밀번호로 바꾸세요!
-        // ----------------------------------------
+        const ADMIN_UID = ""; 
 
         const defaultData = [
             { id: 1, category: 'WORK', name: 'GitHub', url: 'https://github.com', desc: 'Code Repository', img: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80' },
