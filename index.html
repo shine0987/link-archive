@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compact Archive</title>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyDi_WXlQoQsY2L7EQHZo-gHc2qxGNUjl_U",
+          authDomain: "link-archive-71bbd.firebaseapp.com",
+          projectId: "link-archive-71bbd",
+          storageBucket: "link-archive-71bbd.firebasestorage.app",
+          messagingSenderId: "762987195816",
+          appId: "1:762987195816:web:511255b8c61bc8247a419d"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+      </script>
     <style>
         /* --- CSS: 스타일 및 디자인 --- */
         :root {
@@ -333,28 +352,48 @@
         }
 
         // --- 🔐 로그인 로직 ---
-        adminBtn.onclick = () => {
+        adminBtn.onclick = async () => {
             if (!isAdmin) {
-                // 켜려고 할 때: 비밀번호 확인
-                const input = prompt("관리자 비밀번호를 입력하세요:");
-                if (input === ADMIN_PASSWORD) {
-                    isAdmin = true;
-                    document.body.classList.add('admin-mode');
-                    adminBtn.classList.add('active');
-                    adminBtn.innerText = "종료";
-                    render();
+              try {
+                const result = await firebaseAuth.signInWithPopup(
+                  firebaseAuth.auth,
+                  firebaseAuth.githubProvider
+                ).then(res => console.log(res.user.uid));
+          
+                if (result.user.uid === ADMIN_UID) {
+                  isAdmin = true;
+                  document.body.classList.add('admin-mode');
+                  adminBtn.innerText = "로그아웃";
+                  render();
                 } else {
-                    if(input !== null) alert("비밀번호가 틀렸습니다.");
+                  alert("관리자 계정이 아닙니다.");
+                  await firebaseAuth.signOut(firebaseAuth.auth);
                 }
+              } catch (e) {
+                console.error(e);
+              }
             } else {
-                // 끌 때: 그냥 꺼짐
-                isAdmin = false;
-                document.body.classList.remove('admin-mode');
-                adminBtn.classList.remove('active');
-                adminBtn.innerText = "관리";
-                render();
+              await firebaseAuth.signOut(firebaseAuth.auth);
+              isAdmin = false;
+              document.body.classList.remove('admin-mode');
+              adminBtn.innerText = "관리";
+              render();
             }
-        };
+          };
+
+          firebaseAuth.onAuthStateChanged(firebaseAuth.auth, user => {
+            if (user && user.uid === ADMIN_UID) {
+              isAdmin = true;
+              document.body.classList.add('admin-mode');
+              adminBtn.innerText = "로그아웃";
+            } else {
+              isAdmin = false;
+              document.body.classList.remove('admin-mode');
+              adminBtn.innerText = "관리";
+            }
+            render();
+          });
+          
 
         function openModal(editId = null) {
             const modal = document.getElementById('modalOverlay');
