@@ -281,7 +281,7 @@
       </script>
 
     <script>
-        const ADMIN_UID = ""; 
+        const ADMIN_UID = "lQjtpzU7p5Ws8gHDAOGR8AwGofi2"; 
 
         const defaultData = [
             { id: 1, category: 'WORK', name: 'GitHub', url: 'https://github.com', desc: 'Code Repository', img: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80' },
@@ -377,7 +377,9 @@
                 const result = await firebaseAuth.signInWithPopup(
                   firebaseAuth.auth,
                   firebaseAuth.githubProvider
-                ).then(res => console.log(res.user.uid));
+                );
+
+                console.log("UID:", result.user.uid);
           
                 if (result.user.uid === ADMIN_UID) {
                   isAdmin = true;
