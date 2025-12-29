@@ -1,480 +1,51 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compact Archive</title>
-    <style>
-        /* --- CSS: 스타일 및 디자인 --- */
-        :root {
-            --bg-color: #ffffff;
-            --text-color: #222222;
-            --sub-text: #888888;
-            --border-color: #e0e0e0;
-            --accent-bg: #f7f7f7;
-            --drawer-radius: 12px; /* 둥근 정도도 살짝 줄임 */
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-        
-        body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding-bottom: 80px;
-        }
-
-        /* 상단 헤더 (사이즈 축소) */
-        header {
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 800px; /* 전체 폭을 줄임 */
-            margin: 0 auto;
-        }
-        h1 { font-weight: 800; letter-spacing: -0.5px; font-size: 1.2rem; }
-
-        .admin-btn {
-            background: #fff; border: 1px solid #ccc;
-            padding: 6px 12px; font-size: 0.75rem; cursor: pointer;
-            border-radius: 20px; transition: 0.2s; font-weight: 600; color: #555;
-        }
-        .admin-btn:hover, .admin-btn.active { background: #222; color: #fff; border-color: #222; }
-
-        /* --- 메인 컨테이너 --- */
-        .main-container {
-            max-width: 800px; /* 전체 폭 줄임 */
-            margin: 20px auto;
-            padding: 0 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px; /* 행 간격 줄임 */
-        }
-
-        /* 각 행 (Row) */
-        .category-row {
-            display: flex;
-            align-items: stretch; /* 높이 동기화의 핵심 */
-            gap: 15px; /* 사진-서랍 사이 간격 줄임 */
-            /* 기본 높이를 아주 작게 줄임 -> 서랍 열면 늘어남 */
-            min-height: 120px; 
-            transition: all 0.4s ease; /* 부드러운 움직임 */
-        }
-
-        .category-row:nth-child(even) { flex-direction: row-reverse; }
-
-        /* 1. 사진 박스 영역 */
-        .row-image-box {
-            flex: 3; /* 비율 조정 */
-            position: relative;
-            border-radius: var(--drawer-radius);
-            overflow: hidden;
-            background-color: #f4f4f4;
-            /* 높이가 변할 때 이미지도 부드럽게 변하도록 설정 */
-            transition: all 0.4s ease;
-        }
-        .row-image-box img {
-            width: 100%; height: 100%; 
-            object-fit: cover; /* 박스 크기에 맞춰 꽉 차게 */
-            filter: grayscale(100%); 
-            transition: transform 0.5s ease, filter 0.3s ease;
-        }
-        .row-image-box:hover img { filter: grayscale(0%); transform: scale(1.05); }
-        
-        .no-image-placeholder {
-            width: 100%; height: 100%; display: flex; 
-            justify-content: center; align-items: center;
-            color: #ddd; font-weight: 800; font-size: 1rem;
-        }
-
-        /* 2. 서랍 박스 영역 */
-        .row-drawer-box {
-            flex: 7; /* 서랍 영역을 좀 더 넓게 */
-            background: #fff;
-            border: 1px solid var(--border-color);
-            border-radius: var(--drawer-radius);
-            overflow: hidden;
-            display: flex; flex-direction: column;
-            transition: all 0.4s ease; /* 박스 자체 애니메이션 */
-        }
-
-        /* 서랍 헤더 (작게) */
-        .drawer-header {
-            padding: 0 25px; /* 상하 패딩 제거하고 flex로 중앙 정렬 */
-            height: 100%; /* 닫혀있을 땐 박스 전체 높이 */
-            min-height: 120px; /* row의 min-height와 맞춤 */
-            cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center;
-            font-weight: 700; font-size: 1.1rem;
-            transition: background 0.2s;
-        }
-        /* 서랍이 열리면 헤더 높이를 줄여서 일반 헤더처럼 보이게 함 */
-        .row-drawer-box.open .drawer-header {
-            height: auto;
-            min-height: 60px;
-            padding: 15px 25px;
-            border-bottom: 1px solid var(--border-color);
-            background: #fff;
-        }
-        
-        .drawer-header:hover { background: var(--accent-bg); }
-        .drawer-header::after { content: '+'; font-weight: 300; font-size: 1.2rem; color: #aaa; }
-        .row-drawer-box.open .drawer-header::after { content: '-'; }
-
-        /* 서랍 내용 */
-        .drawer-content {
-            flex: 1; 
-            max-height: 0; overflow: hidden;
-            /* 애니메이션 속도 */
-            transition: max-height 0.4s ease-in-out; 
-            background: #fff;
-        }
-        .row-drawer-box.open .drawer-content { 
-            max-height: 1000px; /* 열렸을 때 최대 높이 제한 */
-        }
-
-        /* 리스트 아이템 (작게) */
-        .site-item {
-            padding: 12px 25px; /* 패딩 축소 */
-            border-bottom: 1px solid #f5f5f5;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .site-item:hover { background: #fafafa; padding-left: 30px; transition: 0.2s; }
-        
-        .site-info { display: flex; flex-direction: column; flex: 1; text-decoration: none; color: inherit; }
-        .site-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
-        .site-desc { font-size: 0.75rem; color: var(--sub-text); }
-
-        /* 관리 버튼 그룹 */
-        .action-btns { display: none; gap: 6px; }
-        body.admin-mode .action-btns { display: flex; }
-        body.admin-mode .site-info { pointer-events: none; opacity: 0.6; } /* 관리모드 시 링크 비활성 느낌 */
-        
-        .sm-btn { padding: 4px 8px; font-size: 0.7rem; cursor: pointer; border: 1px solid #333; border-radius: 4px; font-weight: 600;}
-        .btn-edit { background: #fff; color: #333; }
-        .btn-del { background: #333; color: #fff; }
-
-        /* 모달 및 플로팅 버튼 */
-        #modalOverlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3); z-index: 100; justify-content: center; align-items: center;
-            backdrop-filter: blur(3px);
-        }
-        .modal-box { background: #fff; width: 90%; max-width: 400px; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 5px; color: #555; }
-        .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; }
-        
-        .img-helper-btns { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;}
-        .img-helper-btns button { font-size: 0.7rem; padding: 5px 8px; border: 1px solid #eee; background: #f9f9f9; cursor: pointer; border-radius: 15px; }
-        .img-helper-btns button:hover { background: #eee; border-color: #ccc; }
-
-        .modal-footer { margin-top: 20px; display: flex; gap: 10px; }
-        .btn-primary { flex: 1; background: #222; color: #fff; padding: 10px; border: none; cursor: pointer; font-weight: 700; border-radius: 6px; font-size: 0.9rem;}
-        .btn-secondary { flex: 1; background: #fff; color: #222; padding: 10px; border: 1px solid #ddd; cursor: pointer; border-radius: 6px; font-size: 0.9rem;}
-        
-        .fab {
-            position: fixed; bottom: 25px; right: 25px; width: 45px; height: 45px; background: #222; color: #fff;
-            border-radius: 50%; border: none; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            display: none; z-index: 50; transition: transform 0.2s;
-        }
-        .fab:hover { transform: scale(1.1); }
-        body.admin-mode .fab { display: block; }
-
-        @media (max-width: 768px) {
-            .category-row, .category-row:nth-child(even) { flex-direction: column; min-height: auto; }
-            .row-image-box { height: 140px; flex: none; } 
-            .drawer-header { min-height: 60px; height: auto; } /* 모바일은 헤더 높이 고정 */
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Link Archive</title>
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
     <header>
         <h1>ARCHIVE.</h1>
         <button id="toggleAdmin" class="admin-btn">관리</button>
-    </header>
+      </header>
 
-    <main class="main-container" id="mainContainer">
-    </main>
+      <main class="main-container" id="mainContainer">
+        <div id="catList"></div>
+    </main>    
 
-    <button class="fab" onclick="openModal()">+</button>
+    <script type="module" src="./js/main.js"></script>
 
-    <div id="modalOverlay">
-        <div class="modal-box">
-            <h3 id="modalTitle" style="margin-bottom: 20px; font-weight: 800;">사이트 추가</h3>
-            <input type="hidden" id="editId">
-            <div class="input-group">
-                <label>카테고리</label>
-                <input type="text" id="inpCat" list="catList">
-                <datalist id="catList"></datalist>
-            </div>
-            <div class="input-group">
-                <label>이름</label>
-                <input type="text" id="inpName">
-            </div>
-            <div class="input-group">
-                <label>URL</label>
-                <input type="url" id="inpUrl">
-            </div>
-            <div class="input-group">
-                <label>설명</label>
-                <input type="text" id="inpDesc">
-            </div>
-            <div class="input-group">
-                <label>대표 이미지 URL</label>
-                <input type="text" id="inpImg">
-                <div class="img-helper-btns">
-                    <button onclick="fillRandomImg('desk')">데스크</button>
-                    <button onclick="fillRandomImg('arch')">건축</button>
-                    <button onclick="fillRandomImg('nature')">자연</button>
-                    <button onclick="fillRandomImg('bw')">흑백</button>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-primary" onclick="saveData()">저장</button>
-                <button class="btn-secondary" onclick="closeModal()">취소</button>
-            </div>
+    <div id="modalOverlay" class="modal-overlay hidden">
+      <div class="modal">
+        <h2 id="modalTitle">사이트 정보</h2>
+    
+        <div class="form-group">
+          <label for="modalNameInput">이름</label>
+          <input id="modalNameInput" placeholder="예: GitHub" />
         </div>
-    </div>
-
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-        import {
-            getAuth,
-            signInWithPopup,
-            GithubAuthProvider,
-            signOut,
-            onAuthStateChanged
-          } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
-      
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyDi_WXlQoQsY2L7EQHZo-gHc2qxGNUjl_U",
-          authDomain: "link-archive-71bbd.firebaseapp.com",
-          projectId: "link-archive-71bbd",
-          storageBucket: "link-archive-71bbd.firebasestorage.app",
-          messagingSenderId: "762987195816",
-          appId: "1:762987195816:web:511255b8c61bc8247a419d"
-        };
-      
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-
-        // Auth 초기화
-        const auth = getAuth(app);
-        const githubProvider = new GithubAuthProvider();
-
-        // 전역으로 노출
-        window.firebaseAuth = {
-            auth,
-            githubProvider,
-            signInWithPopup,
-            signOut,
-            onAuthStateChanged
-        };
-      </script>
-
-    <script>
-        const ADMIN_UID = "lQjtpzU7p5Ws8gHDAOGR8AwGofi2"; 
-
-        const defaultData = [
-            { id: 1, category: 'WORK', name: 'GitHub', url: 'https://github.com', desc: 'Code Repository', img: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80' },
-            { id: 2, category: 'WORK', name: 'ChatGPT', url: 'https://chatgpt.com', desc: 'AI Assistant', img: '' },
-            { id: 3, category: 'DESIGN', name: 'Pinterest', url: 'https://pinterest.com', desc: 'Reference', img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&q=80' },
-            { id: 5, category: 'DAILY', name: 'YouTube', url: 'https://youtube.com', desc: 'Video', img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80' },
-        ];
-
-        let sites = JSON.parse(localStorage.getItem('compactArchiveData')) || defaultData;
-        let isAdmin = false;
-
-        const mainContainer = document.getElementById('mainContainer');
-        const adminBtn = document.getElementById('toggleAdmin');
         
-        function render() {
-            mainContainer.innerHTML = ''; 
-            document.getElementById('catList').innerHTML = '';
-
-            const grouped = {};
-            sites.forEach(site => {
-                if (!grouped[site.category]) grouped[site.category] = [];
-                grouped[site.category].push(site);
-                if (!document.querySelector(`#catList option[value="${site.category}"]`)) {
-                     const opt = document.createElement('option'); opt.value = site.category;
-                     document.getElementById('catList').appendChild(opt);
-                }
-            });
-
-            Object.entries(grouped).forEach(([cat, items], index) => {
-                const row = document.createElement('div');
-                row.className = 'category-row'; 
-
-                // 이미지 박스
-                const repItem = items.find(i => i.img && i.img.trim() !== '');
-                const imgBox = document.createElement('div');
-                imgBox.className = 'row-image-box';
-                if (repItem) {
-                    imgBox.innerHTML = `<img src="${repItem.img}" alt="${cat}" loading="lazy">`;
-                    imgBox.onclick = () => { if(!isAdmin) window.open(repItem.url, '_blank'); };
-                } else {
-                    imgBox.innerHTML = `<div class="no-image-placeholder">${cat.substring(0,1)}</div>`;
-                }
-
-                // 서랍 박스
-                const drawerBox = document.createElement('div');
-                drawerBox.className = 'row-drawer-box';
-
-                const header = document.createElement('div');
-                header.className = 'drawer-header';
-                header.textContent = cat;
-                
-                // 클릭 시 열고 닫기 (이때 Flexbox stretch 속성 때문에 사진 크기도 같이 변함)
-                header.onclick = () => drawerBox.classList.toggle('open');
-
-                const content = document.createElement('div');
-                content.className = 'drawer-content';
-
-                items.forEach(site => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'site-item';
-
-                    const infoDiv = document.createElement('a');
-                    infoDiv.className = 'site-info';
-                    infoDiv.href = isAdmin ? 'javascript:void(0)' : site.url;
-                    if(!isAdmin) infoDiv.target = "_blank";
-                    infoDiv.innerHTML = `<div class="site-name">${site.name}</div><div class="site-desc">${site.desc || site.url}</div>`;
-
-                    const btnGroup = document.createElement('div');
-                    btnGroup.className = 'action-btns';
-                    const editBtn = document.createElement('button'); editBtn.innerText = '수정'; editBtn.className = 'sm-btn btn-edit';
-                    editBtn.onclick = (e) => { e.stopPropagation(); openModal(site.id); };
-                    const delBtn = document.createElement('button'); delBtn.innerText = '삭제'; delBtn.className = 'sm-btn btn-del';
-                    delBtn.onclick = (e) => { e.stopPropagation(); deleteSite(site.id); };
-                    
-                    btnGroup.appendChild(editBtn); btnGroup.appendChild(delBtn);
-                    itemDiv.appendChild(infoDiv); itemDiv.appendChild(btnGroup);
-                    content.appendChild(itemDiv);
-                });
-
-                drawerBox.appendChild(header);
-                drawerBox.appendChild(content);
-
-                row.appendChild(imgBox);
-                row.appendChild(drawerBox);
-                mainContainer.appendChild(row);
-            });
-        }
-
-        // --- 🔐 로그인 로직 ---
-        adminBtn.onclick = async () => {
-            if (!isAdmin) {
-              try {
-                const result = await firebaseAuth.signInWithPopup(
-                  firebaseAuth.auth,
-                  firebaseAuth.githubProvider
-                );
-
-                console.log("UID:", result.user.uid);
-          
-                if (result.user.uid === ADMIN_UID) {
-                  isAdmin = true;
-                  document.body.classList.add('admin-mode');
-                  adminBtn.innerText = "로그아웃";
-                  render();
-                } else {
-                  alert("관리자 계정이 아닙니다.");
-                  await firebaseAuth.signOut(firebaseAuth.auth);
-                }
-              } catch (e) {
-                console.error(e);
-              }
-            } else {
-              await firebaseAuth.signOut(firebaseAuth.auth);
-              isAdmin = false;
-              document.body.classList.remove('admin-mode');
-              adminBtn.innerText = "관리";
-              render();
-            }
-          };
-
-          firebaseAuth.onAuthStateChanged(firebaseAuth.auth, user => {
-            if (user && user.uid === ADMIN_UID) {
-              isAdmin = true;
-              document.body.classList.add('admin-mode');
-              adminBtn.innerText = "로그아웃";
-            } else {
-              isAdmin = false;
-              document.body.classList.remove('admin-mode');
-              adminBtn.innerText = "관리";
-            }
-            render();
-          });
-          
-
-        function openModal(editId = null) {
-            const modal = document.getElementById('modalOverlay');
-            const title = document.getElementById('modalTitle');
-            document.getElementById('editId').value = ''; document.getElementById('inpCat').value = '';
-            document.getElementById('inpName').value = ''; document.getElementById('inpUrl').value = '';
-            document.getElementById('inpDesc').value = ''; document.getElementById('inpImg').value = '';
-
-            if (editId) {
-                const target = sites.find(s => s.id === editId);
-                if (target) {
-                    title.innerText = "사이트 수정";
-                    document.getElementById('editId').value = target.id;
-                    document.getElementById('inpCat').value = target.category;
-                    document.getElementById('inpName').value = target.name;
-                    document.getElementById('inpUrl').value = target.url;
-                    document.getElementById('inpDesc').value = target.desc;
-                    document.getElementById('inpImg').value = target.img || '';
-                }
-            } else { title.innerText = "사이트 추가"; }
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
-
-        function saveData() {
-            const idVal = document.getElementById('editId').value;
-            const category = document.getElementById('inpCat').value.trim();
-            const name = document.getElementById('inpName').value.trim();
-            let url = document.getElementById('inpUrl').value.trim();
-            const desc = document.getElementById('inpDesc').value.trim();
-            const img = document.getElementById('inpImg').value.trim();
-
-            if (!category || !name) return alert('카테고리와 이름은 필수입니다.');
-            if (url && !url.startsWith('http')) url = 'https://' + url;
-
-            if (idVal) {
-                const index = sites.findIndex(s => s.id == idVal);
-                if (index !== -1) sites[index] = { ...sites[index], category, name, url, desc, img };
-            } else {
-                sites.push({ id: Date.now(), category, name, url, desc, img });
-            }
-            localStorage.setItem('compactArchiveData', JSON.stringify(sites));
-            closeModal(); render();
-        }
-
-        function deleteSite(id) {
-            if(confirm('정말 삭제하시겠습니까?')) {
-                sites = sites.filter(s => s.id !== id);
-                localStorage.setItem('compactArchiveData', JSON.stringify(sites));
-                render();
-            }
-        }
-
-        function fillRandomImg(keyword) {
-            const url = `https://source.unsplash.com/random/600x400/?${keyword}&${Date.now()}`;
-            document.getElementById('inpImg').value = url;
-        }
-
-        render();
-    </script>
+        <div class="form-group">
+          <label for="modalUrlInput">URL</label>
+          <input id="modalUrlInput" placeholder="https://example.com" />
+        </div>
+        
+        <div class="form-group">
+          <label for="modalCatInput">카테고리</label>
+          <input id="modalCatInput" placeholder="WORK / STUDY / ETC" />
+        </div>
+        
+        <div class="form-group">
+          <label for="modalDescInput">설명</label>
+          <input id="modalDescInput" placeholder="간단한 설명" />
+        </div>        
+    
+        <div class="modal-actions">
+          <button id="modalSave">저장</button>
+          <button id="modalCancel">취소</button>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
