@@ -1,4 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import {
   getAuth,
   GithubAuthProvider,
@@ -18,7 +19,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+export const db = getFirestore(app); // 데이터베이스 (Firestore)
+export const auth = getAuth(app); // 인증 (Auth)
 export const githubProvider = new GithubAuthProvider();
 
 export {

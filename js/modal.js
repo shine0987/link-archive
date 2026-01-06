@@ -1,4 +1,3 @@
-import { sites } from './state.js';
 import { render } from './ui.js';
 
 const overlay = document.getElementById('modalOverlay');
@@ -23,7 +22,7 @@ export function openModal(id) {
   nameInput.value = site.name;
   urlInput.value = site.url;
   catInput.value = site.category;
-  descInput.value = site.desc;
+  descInput.value = site.description;
 
   overlay.classList.remove('hidden');
 }
@@ -36,7 +35,7 @@ saveBtn.onclick = () => {
   site.name = nameInput.value;
   site.url = urlInput.value;
   site.category = catInput.value;
-  site.desc = descInput.value;
+  site.description = descInput.value;
 
   closeModal();
   render();

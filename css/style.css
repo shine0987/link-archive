@@ -27,7 +27,15 @@ header {
     max-width: 800px; /* 전체 폭을 줄임 */
     margin: 0 auto;
 }
-h1 { font-weight: 800; letter-spacing: -0.5px; font-size: 1.2rem; }
+header h1 { font-weight: 800; letter-spacing: -0.5px; font-size: 1.2rem; }
+.repo-link {
+    font-size: 0.6em;        /* ARCHIVE. 옆에 작게 */
+    color: #888;
+    text-decoration: none;
+}
+.repo-link:hover {
+    color: #000;
+}
 
 .admin-btn {
     background: #fff; border: 1px solid #ccc;
@@ -45,6 +53,19 @@ h1 { font-weight: 800; letter-spacing: -0.5px; font-size: 1.2rem; }
     flex-direction: column;
     gap: 25px; /* 행 간격 줄임 */
 }
+
+.color-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 600;
+    color: #555;
+    user-select: none;
+  }  
 
 /* 각 행 (Row) */
 .category-row {
